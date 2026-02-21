@@ -1,14 +1,14 @@
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Map "mo:core/Map";
+import Float "mo:core/Float";
+import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-import Time "mo:core/Time";
-import Float "mo:core/Float";
 import Array "mo:core/Array";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   include MixinStorage();
 
@@ -83,6 +83,27 @@ actor {
     balance : Float;
   };
 
+  public type RoomType = { #privateRoom; #isPublic };
+  public type MatchmakingRoom = {
+    id : Principal;
+    roomType : RoomType;
+    creator : Principal;
+    playerCount : Nat;
+    maxPlayers : Nat;
+    gameMode : GameMode;
+    players : [Principal];
+    status : { #waiting; #active; #completed };
+    isDemo : Bool;
+  };
+
+  public type DiceRoll = {
+    rollNumber : Nat;
+    playerPrincipal : Principal;
+    diceResult : Nat;
+    seed : Text;
+    timestamp : Int;
+  };
+
   public type GameSession = {
     id : Principal;
     mode : GameMode;
@@ -93,6 +114,7 @@ actor {
     winner : ?Principal;
     createdAt : Int;
     isDemo : Bool;
+    diceHistory : [DiceRoll];
   };
 
   let accessControlState = AccessControl.initState();
@@ -101,6 +123,7 @@ actor {
   let wallets = Map.empty<Principal, Wallet>();
   let games = Map.empty<Principal, GameSession>();
   let bots = Map.empty<Principal, BotConfig>();
+  let matchmakingRooms = Map.empty<Principal, MatchmakingRoom>();
   let ceoPrincipal = Principal.fromText("aaaaa-aa");
 
   public shared ({ caller }) func initializeAccessControl() : async () {
@@ -506,6 +529,7 @@ actor {
       winner = null;
       createdAt = Time.now();
       isDemo = isDemo;
+      diceHistory = [];
     };
     games.add(gameId, newGame);
     gameId;
@@ -560,8 +584,9 @@ actor {
     availableGames.values().toArray();
   };
 
-  private func isGameParticipant(caller : Principal, game : GameSession) : Bool {
-    for (player in game.players.vals()) {
+  func isGameParticipant(caller : Principal, game : GameSession) : Bool {
+    let players = game.players;
+    for (player in players.vals()) {
       if (player == caller) {
         return true;
       };
@@ -675,8 +700,172 @@ actor {
     bots.values().toArray();
   };
 
-  private func createBotPrincipal() : Principal {
+  func createBotPrincipal() : Principal {
     let newId = bots.size() + 1;
     Principal.fromText("bot-" # newId.toText());
+  };
+
+  public shared ({ caller }) func createMatchmakingRoom(roomType : RoomType, gameMode : GameMode, maxPlayers : Nat, isDemo : Bool) : async Principal {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can create rooms");
+    };
+    if (maxPlayers > 6) { Runtime.trap("Maximum 6 players for this game."); };
+    let roomId = caller;
+    let newRoom : MatchmakingRoom = {
+      id = roomId;
+      roomType;
+      creator = caller;
+      playerCount = 1;
+      maxPlayers = maxPlayers;
+      gameMode;
+      players = [caller];
+      status = #waiting;
+      isDemo;
+    };
+    matchmakingRooms.add(roomId, newRoom);
+    roomId;
+  };
+
+  public shared ({ caller }) func joinRoom(roomId : Principal) : async Bool {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can join rooms");
+    };
+    switch (matchmakingRooms.get(roomId)) {
+      case (null) { Runtime.trap("Matchmaking room does not exist") };
+      case (?room) {
+        if (room.playerCount >= room.maxPlayers) {
+          Runtime.trap("Room reached max players: " # room.maxPlayers.toText() # ".");
+        };
+        let updatedPlayers = room.players.concat([caller]);
+        let updatedRoom = {
+          room with
+          playerCount = room.playerCount + 1;
+          players = updatedPlayers;
+        };
+        matchmakingRooms.add(roomId, updatedRoom);
+        true;
+      };
+    };
+  };
+
+  public shared ({ caller }) func leaveRoom(roomId : Principal) : async Bool {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can leave rooms");
+    };
+    switch (matchmakingRooms.get(roomId)) {
+      case (null) { Runtime.trap("Matchmaking room does not exist") };
+      case (?room) {
+        var isInRoom = false;
+        for (p in room.players.vals()) {
+          if (p == caller) { isInRoom := true };
+        };
+        if (not isInRoom) {
+          Runtime.trap("Unauthorized: You are not in this room");
+        };
+
+        if (room.creator == caller) {
+          // Room creator is leaving, so the room will be deleted.
+          matchmakingRooms.remove(roomId);
+          return true;
+        };
+        let updatedPlayers = room.players.filter(func(player) { player != caller });
+        if (updatedPlayers.size() == 0) {
+          // No players remaining, so the room will be deleted.
+          matchmakingRooms.remove(roomId);
+        } else {
+          let updatedRoom = {
+            room with
+            playerCount = room.playerCount - 1;
+            players = updatedPlayers;
+          };
+          matchmakingRooms.add(roomId, updatedRoom);
+        };
+        true;
+      };
+    };
+  };
+
+  public query ({ caller }) func getAvailableRooms() : async [MatchmakingRoom] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can view available rooms");
+    };
+    let availableRooms = Map.empty<Principal, MatchmakingRoom>();
+    for ((id, room) in matchmakingRooms.entries()) {
+      if (room.status == #waiting) {
+        availableRooms.add(id, room);
+      };
+    };
+    availableRooms.values().toArray();
+  };
+
+  public shared ({ caller }) func rollDice(gameId : Principal, player : Principal) : async {
+    result : Nat;
+    seed : Text;
+    valid : Bool;
+  } {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can roll dice");
+    };
+
+    // Verify caller is rolling for themselves
+    if (caller != player) {
+      Runtime.trap("Unauthorized: You can only roll dice for yourself");
+    };
+
+    switch (games.get(gameId)) {
+      case (null) { Runtime.trap("Game does not exist") };
+      case (?game) {
+        // Verify caller is a participant in the game
+        if (not isGameParticipant(caller, game)) {
+          Runtime.trap("Unauthorized: You are not a participant in this game");
+        };
+
+        if (game.status != #active) {
+          Runtime.trap("Game is not in progress");
+        };
+
+        // Insecure random number generation, pending integration with a secure randomness provider
+        let timestamp = Time.now();
+        let seed = timestamp.toText();
+        let result = ((timestamp % 6) + 1).toNat();
+
+        let newDiceRoll : DiceRoll = {
+          rollNumber = game.diceHistory.size() + 1;
+          playerPrincipal = player;
+          diceResult = result;
+          seed;
+          timestamp;
+        };
+
+        let updatedDiceHistory = game.diceHistory.concat([newDiceRoll]);
+        let updatedGame = {
+          game with
+          diceHistory = updatedDiceHistory;
+        };
+        games.add(gameId, updatedGame);
+        {
+          result;
+          seed;
+          valid = true;
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func getDiceHistory(gameId : Principal) : async ?[DiceRoll] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only authenticated users can view dice history");
+    };
+
+    switch (games.get(gameId)) {
+      case (null) { null };
+      case (?game) {
+        // Verify caller is a participant in the game or an admin
+        if (not isGameParticipant(caller, game) and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Can only view dice history for games you are participating in");
+        };
+        ?game.diceHistory;
+      };
+    };
   };
 };

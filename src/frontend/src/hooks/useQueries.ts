@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { UserProfile, Player, Wallet, GameMode, RankedStatus, OfficialWallet, GameSession, BotConfig, BotDifficulty } from '../backend';
+import type { UserProfile, Player, Wallet, GameMode, RankedStatus, OfficialWallet, GameSession, BotConfig, BotDifficulty, MatchmakingRoom, RoomType } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
 
 // Automatic User Initialization
@@ -325,6 +325,96 @@ export function useActivatePremiumBot() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['availableBots'] });
+    },
+  });
+}
+
+// Matchmaking Room Queries
+export function useGetAvailableRooms() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<MatchmakingRoom[]>({
+    queryKey: ['availableRooms'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getAvailableRooms();
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 3000, // Refetch every 3 seconds for real-time room updates
+  });
+}
+
+export function useCreateRoom() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ roomType, gameMode, maxPlayers, isDemo }: {
+      roomType: RoomType;
+      gameMode: GameMode;
+      maxPlayers: number;
+      isDemo: boolean;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.createMatchmakingRoom(roomType, gameMode, BigInt(maxPlayers), isDemo);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['availableRooms'] });
+    },
+  });
+}
+
+export function useJoinRoom() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roomId: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.joinRoom(roomId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['availableRooms'] });
+    },
+  });
+}
+
+export function useLeaveRoom() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roomId: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.leaveRoom(roomId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['availableRooms'] });
+    },
+  });
+}
+
+// Dice Roll Queries
+export function useRollDice() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useMutation({
+    mutationFn: async (gameId: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('Identity not available');
+      return actor.rollDice(gameId, identity.getPrincipal());
+    },
+  });
+}
+
+export function useGetDiceHistory() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useMutation({
+    mutationFn: async (gameId: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getDiceHistory(gameId);
     },
   });
 }

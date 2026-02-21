@@ -19,6 +19,13 @@ export interface BotConfig {
 export type BotDifficulty = { 'easy' : null } |
   { 'hard' : null } |
   { 'medium' : null };
+export interface DiceRoll {
+  'seed' : string,
+  'diceResult' : bigint,
+  'rollNumber' : bigint,
+  'timestamp' : bigint,
+  'playerPrincipal' : Principal,
+}
 export type GameMode = { 'timed' : null } |
   { 'challenge' : null } |
   { 'advanced' : null } |
@@ -45,11 +52,25 @@ export interface GameSession {
   'winner' : [] | [Principal],
   'isDemo' : boolean,
   'players' : Array<Principal>,
+  'diceHistory' : Array<DiceRoll>,
   'rankedStatus' : RankedStatus,
 }
 export type GameStatus = { 'active' : null } |
   { 'completed' : null } |
   { 'waiting' : null };
+export interface MatchmakingRoom {
+  'id' : Principal,
+  'status' : { 'active' : null } |
+    { 'completed' : null } |
+    { 'waiting' : null },
+  'creator' : Principal,
+  'playerCount' : bigint,
+  'isDemo' : boolean,
+  'players' : Array<Principal>,
+  'gameMode' : GameMode,
+  'roomType' : RoomType,
+  'maxPlayers' : bigint,
+}
 export interface OfficialWallet { 'balance' : number, 'address' : string }
 export interface Player {
   'principal' : Principal,
@@ -67,6 +88,8 @@ export interface Player {
 }
 export type RankedStatus = { 'ranked' : null } |
   { 'unranked' : null };
+export type RoomType = { 'privateRoom' : null } |
+  { 'isPublic' : null };
 export interface UserProfile {
   'gamesPlayed' : number,
   'isPremium' : boolean,
@@ -131,6 +154,10 @@ export interface _SERVICE {
     [GameMode, RankedStatus, number, boolean],
     Principal
   >,
+  'createMatchmakingRoom' : ActorMethod<
+    [RoomType, GameMode, bigint, boolean],
+    Principal
+  >,
   'createUser' : ActorMethod<[string, string], undefined>,
   'deposit' : ActorMethod<[number], boolean>,
   'getAllBots' : ActorMethod<[], Array<BotConfig>>,
@@ -139,9 +166,11 @@ export interface _SERVICE {
   'getAllWallets' : ActorMethod<[], Array<Wallet>>,
   'getAvailableBots' : ActorMethod<[], Array<BotConfig>>,
   'getAvailableGames' : ActorMethod<[], Array<GameSession>>,
+  'getAvailableRooms' : ActorMethod<[], Array<MatchmakingRoom>>,
   'getBalance' : ActorMethod<[], number>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getDiceHistory' : ActorMethod<[Principal], [] | [Array<DiceRoll>]>,
   'getGame' : ActorMethod<[Principal], [] | [GameSession]>,
   'getOfficialAccount' : ActorMethod<[boolean], string>,
   'getOfficialWallets' : ActorMethod<[], Array<OfficialWallet>>,
@@ -162,7 +191,13 @@ export interface _SERVICE {
   'isFirstTime' : ActorMethod<[], boolean>,
   'isPremium' : ActorMethod<[], boolean>,
   'joinGame' : ActorMethod<[Principal, boolean], boolean>,
+  'joinRoom' : ActorMethod<[Principal], boolean>,
+  'leaveRoom' : ActorMethod<[Principal], boolean>,
   'registerBot' : ActorMethod<[BotDifficulty], Principal>,
+  'rollDice' : ActorMethod<
+    [Principal, Principal],
+    { 'result' : bigint, 'valid' : boolean, 'seed' : string }
+  >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'updatePlayer' : ActorMethod<[string, string], undefined>,
   'upgradeToPremium' : ActorMethod<[], boolean>,

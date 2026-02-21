@@ -3,7 +3,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetCallerUserProfile, useGetPlayerWallet } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from './ui/button';
-import { Wallet, Gamepad2, Home, User, Info, BookOpen } from 'lucide-react';
+import { Wallet, Gamepad2, Home, User, Info, BookOpen, LogIn, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
 type View = 'dashboard' | 'lobby' | 'game' | 'wallet' | 'profile' | 'about' | 'guide';
@@ -31,6 +31,7 @@ export default function Header({ currentView, onNavigate }: HeaderProps) {
     } else {
       try {
         await login();
+        toast.success('✅ Logged in successfully');
       } catch (error: any) {
         console.error('Login error:', error);
         if (error.message === 'User is already authenticated') {
@@ -124,27 +125,28 @@ export default function Header({ currentView, onNavigate }: HeaderProps) {
             </Button>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {isAuthenticated && wallet && (
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 shadow-glow-purple">
-                <img 
-                  src="/assets/generated/wallet-icon-transparent.dim_64x64.png" 
-                  alt="Wallet" 
-                  className="w-5 h-5"
-                />
-                <span className="font-bold text-sm">{wallet.balance.toFixed(2)} ICP</span>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                <Wallet className="w-4 h-4 text-purple-400" />
+                <span className="text-sm font-semibold text-white">
+                  {wallet.balance.toFixed(2)} ICP
+                </span>
               </div>
             )}
             
             {isAuthenticated && userProfile && (
-              <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 shadow-glow-pink">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: userProfile.color }} />
-                <span className="font-medium text-sm">{userProfile.name}</span>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: userProfile.color }}
+                />
+                <span className="text-sm font-medium text-white">{userProfile.name}</span>
                 {userProfile.isPremium && (
                   <img 
                     src="/assets/generated/premium-badge-transparent.dim_100x100.png" 
                     alt="Premium" 
-                    className="w-5 h-5"
+                    className="w-4 h-4"
                   />
                 )}
               </div>
@@ -153,10 +155,29 @@ export default function Header({ currentView, onNavigate }: HeaderProps) {
             <Button
               onClick={handleAuth}
               disabled={disabled}
-              variant={isAuthenticated ? 'outline' : 'default'}
-              className={isAuthenticated ? '' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-glow-purple'}
+              size="sm"
+              className={`gap-2 ${
+                isAuthenticated
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+              }`}
             >
-              {disabled ? 'Connecting...' : isAuthenticated ? 'Logout' : 'Login'}
+              {disabled ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Logging in...
+                </>
+              ) : isAuthenticated ? (
+                <>
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </>
+              )}
             </Button>
           </div>
         </div>

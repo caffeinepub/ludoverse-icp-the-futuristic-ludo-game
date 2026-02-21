@@ -6,10 +6,13 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
-import { ArrowLeft, Sparkles, Bot, Clock, Target } from 'lucide-react';
+import { ArrowLeft, Sparkles, Bot, Clock, Target, Wifi, WifiOff, Eye, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatPanel from './ChatPanel';
-import { useGetGame } from '../hooks/useQueries';
+import { useGetGame, useRollDice } from '../hooks/useQueries';
+import { useReconnect } from '../hooks/useReconnect';
+import { useOptimisticState } from '../hooks/useOptimisticState';
+import { useGameStateSync } from '../hooks/useGameStateSync';
 import { Principal } from '@icp-sdk/core/principal';
 import { GameMode } from '../backend';
 
@@ -214,7 +217,12 @@ function Dice3D({ value, isRolling, onRollComplete }: { value: number; isRolling
 }
 
 // 3D Token Component
-function Token3D({ position, color, onClick }: { position: [number, number, number]; color: string; onClick?: () => void }) {
+function Token3D({ position, color, onClick, isOptimistic }: { 
+  position: [number, number, number]; 
+  color: string; 
+  onClick?: () => void;
+  isOptimistic?: boolean;
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -240,19 +248,22 @@ function Token3D({ position, color, onClick }: { position: [number, number, numb
         roughness={0.3}
         emissive={color}
         emissiveIntensity={hovered ? 0.5 : 0.2}
+        opacity={isOptimistic ? 0.7 : 1}
+        transparent={isOptimistic}
       />
     </mesh>
   );
 }
 
 // Scene Component
-function Scene({ gameMode, diceValue, isRolling, onRollComplete, players, onTokenClick }: {
+function Scene({ gameMode, diceValue, isRolling, onRollComplete, players, onTokenClick, optimisticMoves }: {
   gameMode: GameMode;
   diceValue: number;
   isRolling: boolean;
   onRollComplete: () => void;
   players: Player[];
   onTokenClick: (playerId: string, pieceId: number) => void;
+  optimisticMoves: Set<string>;
 }) {
   return (
     <>
@@ -287,12 +298,14 @@ function Scene({ gameMode, diceValue, isRolling, onRollComplete, players, onToke
           const radius = 5;
           const x = Math.cos(angle) * radius;
           const z = Math.sin(angle) * radius;
+          const moveKey = `${player.id}-${piece.id}`;
           return (
             <Token3D
-              key={`${player.id}-${piece.id}`}
+              key={moveKey}
               position={[x, 0.5, z]}
               color={player.colorHex}
               onClick={() => onTokenClick(player.id, piece.id)}
+              isOptimistic={optimisticMoves.has(moveKey)}
             />
           );
         })
@@ -366,17 +379,59 @@ function MasterModeDiceChoice({ onChoose, isVisible }: { onChoose: (value: numbe
   );
 }
 
+// Reconnection Overlay
+function ReconnectionOverlay({ isReconnecting, attempts }: { isReconnecting: boolean; attempts: number }) {
+  if (!isReconnecting) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+      <Card className="bg-black/90 border-2 border-yellow-500">
+        <CardContent className="p-8 text-center space-y-4">
+          <WifiOff className="w-16 h-16 mx-auto text-yellow-400 animate-pulse" />
+          <div>
+            <h3 className="text-xl font-bold text-yellow-400 mb-2">Connection Lost</h3>
+            <p className="text-muted-foreground">Attempting to reconnect...</p>
+            <p className="text-sm text-muted-foreground mt-2">Attempt {attempts}</p>
+          </div>
+          <Loader2 className="w-8 h-8 mx-auto animate-spin text-yellow-400" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Spectator Badge
+function SpectatorBadge() {
+  return (
+    <div className="fixed top-4 right-4 z-10">
+      <Badge className="bg-cyan-500/80 backdrop-blur-xl text-white px-4 py-2 gap-2">
+        <Eye className="w-4 h-4" />
+        Spectator Mode
+      </Badge>
+    </div>
+  );
+}
+
 export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) {
   const [diceValue, setDiceValue] = useState(1);
   const [isRolling, setIsRolling] = useState(false);
   const [currentPlayer, setCurrentPlayer] = useState(0);
   const [showDiceChoice, setShowDiceChoice] = useState(false);
   const [timeLeft, setTimeLeft] = useState(45);
+  const [isSpectator, setIsSpectator] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const getGame = useGetGame();
-
-  const [players, setPlayers] = useState<Player[]>([
+  const rollDice = useRollDice();
+  const { isReconnecting, reconnectionAttempts, isOnline, gameState } = useReconnect(gameId);
+  
+  const { 
+    displayState: players, 
+    applyOptimisticUpdate, 
+    confirmUpdate, 
+    rollbackUpdate,
+    hasPendingUpdates 
+  } = useOptimisticState<Player[]>([
     {
       id: '1',
       name: 'Player 1',
@@ -402,11 +457,31 @@ export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) 
         { id: 3, position: 13, isInHome: true, isFinished: false },
       ],
     },
-  ]);
+  ], {
+    onRollback: (update) => {
+      toast.error('Move Rejected', {
+        description: 'Server corrected your move',
+        duration: 2000,
+      });
+    }
+  });
+
+  const [optimisticMoves, setOptimisticMoves] = useState<Set<string>>(new Set());
+
+  // Sync game state with backend
+  useGameStateSync({
+    gameId,
+    onStateUpdate: (state) => {
+      console.log('Game state updated:', state);
+      // Update local state based on server state
+    },
+    pollInterval: 2000,
+    enabled: !isReconnecting && isOnline,
+  });
 
   // Quick Mode Timer
   useEffect(() => {
-    if (gameMode === 'quick') {
+    if (gameMode === 'quick' && !isSpectator) {
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
@@ -421,7 +496,7 @@ export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) 
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [gameMode, currentPlayer]);
+  }, [gameMode, currentPlayer, isSpectator]);
 
   const handleAutoSkipTurn = () => {
     toast.warning('Time Expired!', {
@@ -431,14 +506,49 @@ export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) 
     setTimeLeft(45);
   };
 
-  const handleRollDice = () => {
+  const handleRollDice = async () => {
+    if (isSpectator) {
+      toast.error('Spectator Mode', {
+        description: 'You cannot roll dice as a spectator',
+      });
+      return;
+    }
+
+    if (isRolling) {
+      return;
+    }
+
     if (gameMode === 'master') {
       setShowDiceChoice(true);
     } else {
-      const newValue = Math.floor(Math.random() * 6) + 1;
-      setDiceValue(newValue);
-      setIsRolling(true);
-      toast.info(`Rolled a ${newValue}!`);
+      try {
+        // Start animation immediately
+        setIsRolling(true);
+        
+        toast.info('Rolling dice...', {
+          description: 'Requesting server roll',
+          duration: 1500,
+        });
+
+        // Request server-authoritative dice roll
+        const result = await rollDice.mutateAsync(Principal.fromText(gameId));
+        
+        // Set the server-provided dice value
+        const serverValue = Number(result.result);
+        setDiceValue(serverValue);
+        
+        toast.success(`Rolled ${serverValue}!`, {
+          description: `Seed: ${result.seed.slice(0, 8)}...`,
+          duration: 2000,
+        });
+      } catch (error: any) {
+        console.error('Dice roll error:', error);
+        setIsRolling(false);
+        toast.error('Dice Roll Failed', {
+          description: error.message || 'Could not roll dice. Please try again.',
+          duration: 3000,
+        });
+      }
     }
   };
 
@@ -456,60 +566,115 @@ export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) 
   };
 
   const handleTokenClick = (playerId: string, pieceId: number) => {
-    toast.info('Token Selected', {
+    if (isSpectator) {
+      toast.error('Spectator Mode', {
+        description: 'You cannot move pieces as a spectator',
+      });
+      return;
+    }
+
+    const moveId = `${playerId}-${pieceId}-${Date.now()}`;
+    const moveKey = `${playerId}-${pieceId}`;
+    
+    // Apply optimistic update
+    const updatedPlayers = players.map(p => {
+      if (p.id === playerId) {
+        return {
+          ...p,
+          pieces: p.pieces.map(piece => {
+            if (piece.id === pieceId) {
+              return { ...piece, position: piece.position + diceValue };
+            }
+            return piece;
+          })
+        };
+      }
+      return p;
+    });
+
+    applyOptimisticUpdate(moveId, updatedPlayers);
+    setOptimisticMoves(prev => new Set(prev).add(moveKey));
+
+    toast.info('Token Moving', {
       description: `Moving ${players.find(p => p.id === playerId)?.name}'s piece ${pieceId + 1}`,
     });
-  };
 
-  const currentPlayerData = players[currentPlayer];
-  const modeLabel = gameMode === 'classic' ? 'Classic Mode' : gameMode === 'quick' ? 'Quick Mode' : 'Master Mode';
+    // Simulate server confirmation after delay
+    setTimeout(() => {
+      confirmUpdate(moveId, updatedPlayers);
+      setOptimisticMoves(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(moveKey);
+        return newSet;
+      });
+    }, 1000);
+  };
 
   return (
     <div className="relative w-full h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900">
+      {/* Reconnection Overlay */}
+      <ReconnectionOverlay isReconnecting={isReconnecting} attempts={reconnectionAttempts} />
+
+      {/* Spectator Badge */}
+      {isSpectator && <SpectatorBadge />}
+
       {/* Quick Mode Timer */}
-      {gameMode === 'quick' && <QuickModeTimer timeLeft={timeLeft} totalTime={45} />}
+      {gameMode === 'quick' && !isSpectator && (
+        <QuickModeTimer timeLeft={timeLeft} totalTime={45} />
+      )}
 
       {/* Master Mode Dice Choice */}
       {gameMode === 'master' && (
         <MasterModeDiceChoice onChoose={handleDiceChoice} isVisible={showDiceChoice} />
       )}
 
-      {/* Header */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
-        <Button variant="ghost" onClick={onBack} className="gap-2 bg-black/50 backdrop-blur-xl">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <Badge className="bg-purple-500/80 backdrop-blur-xl text-white px-4 py-2">
-          {modeLabel}
+      {/* Online Status Indicator */}
+      <div className="fixed top-4 left-4 z-10">
+        <Badge className={`${isOnline ? 'bg-green-500' : 'bg-red-500'} text-white px-3 py-1 gap-2`}>
+          {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+          {isOnline ? 'Online' : 'Offline'}
         </Badge>
+      </div>
+
+      {/* Pending Updates Indicator */}
+      {hasPendingUpdates && (
+        <div className="fixed top-16 left-4 z-10">
+          <Badge className="bg-yellow-500 text-white px-3 py-1 gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Syncing...
+          </Badge>
+        </div>
+      )}
+
+      {/* Back Button */}
+      <div className="absolute top-4 left-20 z-10">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          className="text-white hover:bg-white/10 backdrop-blur-xl"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Leave Game
+        </Button>
       </div>
 
       {/* Game Info */}
       <div className="absolute top-4 right-4 z-10">
-        <Card className="bg-black/50 backdrop-blur-xl border-purple-500/30 min-w-[200px]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Current Turn</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <div
-                className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: currentPlayerData.colorHex }}
-              />
-              <span className="font-medium">{currentPlayerData.name}</span>
-              {currentPlayerData.isAI && <Bot className="w-4 h-4 text-cyan-400" />}
-            </div>
-            <div className="mt-3">
-              <p className="text-xs text-muted-foreground mb-1">Last Roll</p>
-              <p className="text-2xl font-bold text-purple-400">{diceValue}</p>
+        <Card className="bg-black/60 backdrop-blur-xl border-purple-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Current Turn</p>
+                <p className="text-lg font-bold text-white">{players[currentPlayer]?.name}</p>
+              </div>
+              <div className="w-8 h-8 rounded-full" style={{ backgroundColor: players[currentPlayer]?.colorHex }} />
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* 3D Canvas */}
-      <Canvas shadows className="w-full h-full touch-none">
+      <Canvas shadows className="w-full h-full">
         <Suspense fallback={null}>
           <Scene
             gameMode={gameMode}
@@ -518,20 +683,42 @@ export default function GameBoard({ gameId, gameMode, onBack }: GameBoardProps) 
             onRollComplete={handleRollComplete}
             players={players}
             onTokenClick={handleTokenClick}
+            optimisticMoves={optimisticMoves}
           />
         </Suspense>
       </Canvas>
 
-      {/* Controls */}
+      {/* Game Controls */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-        <Button
-          onClick={handleRollDice}
-          disabled={isRolling || showDiceChoice}
-          size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-glow-purple px-8 py-6 text-lg touch-manipulation min-h-[44px] min-w-[44px]"
-        >
-          {isRolling ? 'Rolling...' : gameMode === 'master' ? 'Choose Dice' : 'Roll Dice'}
-        </Button>
+        <Card className="bg-black/80 backdrop-blur-xl border-purple-500/30">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <p className="text-xs text-muted-foreground mb-2">Dice Value</p>
+                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center text-3xl font-bold shadow-glow-purple">
+                  {diceValue}
+                </div>
+              </div>
+              <Button
+                onClick={handleRollDice}
+                disabled={isRolling || rollDice.isPending || isSpectator}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold px-8 py-6 text-lg shadow-glow-purple"
+              >
+                {isRolling || rollDice.isPending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Rolling...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Roll Dice
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Chat Panel */}

@@ -1,191 +1,136 @@
 {
   "kind": "build_request",
-  "title": "Implement modular game modes: Classic, Quick, and Master",
+  "title": "Fix automatic Internet Identity login flow",
   "projectName": "LudoVerse",
-  "priority": "normal",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-36",
-      "text": "Extend the backend GameMode enumeration in main.mo to include Classic, Quick, and Master mode variants. Each mode should be a distinct enum value that can be stored in GameSession records.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "1️⃣ Classic Mode",
-          "2️⃣ Quick Mode",
-          "Master Mode"
-        ]
-      },
-      "acceptanceCriteria": [
-        "GameMode enum includes Classic, Quick, and Master variants",
-        "GameSession type stores the selected game mode",
-        "Mode selection persists throughout the game lifecycle"
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Implement Classic Mode backend rules in main.mo: traditional Ludo rules with support for 2-4 players, no power-ups, and separate ranked/unranked tracking. Store match results with mode-specific statistics.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Traditional Ludo rules2–4 players",
-          "No power-ups",
-          "Ranked & unranked"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Classic Mode enforces traditional Ludo movement and capture rules",
-        "Supports 2, 3, or 4 player games",
-        "Tracks ranked and unranked games separately",
-        "No power-up logic is applied in Classic Mode"
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "text": "Implement Quick Mode backend rules in main.mo: shortened board paths (reduce path length by 30-40%), faster dice mechanics (allow extra rolls on 6s with shorter cooldown), and time-limited turns (30-45 second turn timer). Support 2-4 players with no power-ups and ranked/unranked variants.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Shortened paths",
-          "Faster dice",
-          "Time-limited turns",
-          "Designed for mobile users"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Quick Mode uses board paths 30-40% shorter than Classic Mode",
-        "Dice rolling has reduced cooldown and faster extra-roll mechanics",
-        "Turn timer enforces 30-45 second time limit per turn",
-        "Auto-skips turn if timer expires",
-        "Supports 2-4 players with no power-ups",
-        "Tracks ranked and unranked Quick Mode games separately"
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Implement Master Mode backend rules in main.mo: skill-heavy gameplay with dice choice options. Allow players to choose between multiple dice values or dice roll modifiers on their turn. Include advanced move validation and strategic gameplay mechanics.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Skill-heavy rules:",
-          "Dice choice options"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Master Mode presents 2-3 dice options per turn for player selection",
-        "Dice choice system is deterministic and fair across all players",
-        "Advanced move validation prevents trivial or exploitative strategies",
-        "Tracks Master Mode statistics separately from other modes"
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Update GameLobby.tsx to display a mode selector with three options: Classic Mode, Quick Mode, and Master Mode. Each mode card should show its key characteristics (player count, special rules, time limits). Allow users to select their preferred mode before creating a new game.",
+      "id": "REQ-81",
+      "text": "Update useInternetIdentity.ts to automatically check for stored Internet Identity delegations on hook initialization. If a valid delegation exists, restore the authenticated session immediately without requiring user interaction.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-final"
         ],
         "quotes": [
-          "Each mode is modular."
+          "Everyone automatically login with internet identity"
         ]
       },
       "acceptanceCriteria": [
-        "Mode selector displays three distinct mode options with descriptions",
-        "Classic Mode shows: Traditional rules, 2-4 players, ranked/unranked",
-        "Quick Mode shows: Shortened paths, faster dice, time limits, mobile-optimized",
-        "Master Mode shows: Skill-heavy, dice choice options",
-        "Selected mode is highlighted visually",
-        "Selected mode is passed to game creation flow"
+        "Hook automatically checks for stored delegations when initialized",
+        "Valid delegations are restored without user clicking login button",
+        "Authenticated session is established silently on app load",
+        "No manual login prompt appears when valid delegation exists"
       ]
     },
     {
-      "id": "REQ-41",
-      "text": "Update GameBoard.tsx to render mode-specific board layouts and rules. Classic Mode uses the standard 3D board with full paths. Quick Mode renders a shortened board with 30-40% fewer tiles and displays a visible turn timer. Master Mode shows dice choice UI with 2-3 selectable dice options before each roll.",
+      "id": "REQ-82",
+      "text": "Update App.tsx to remove any manual login prompts or authentication gates when a valid Internet Identity delegation is detected during initialization. Automatically proceed to user profile initialization and dashboard navigation when authentication is restored.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-final"
         ],
         "quotes": [
-          "Shortened paths",
-          "Time-limited turns",
-          "Dice choice options"
+          "Everyone automatically login with internet identity",
+          "Resolve login issues"
         ]
       },
       "acceptanceCriteria": [
-        "GameBoard adapts board path length based on selected mode",
-        "Quick Mode displays a countdown timer for each turn",
-        "Master Mode shows dice choice UI with clickable dice options",
-        "Mode-specific rules are clearly indicated in the UI",
-        "Turn timer auto-advances turn when time expires in Quick Mode"
+        "No login prompt displayed when valid delegation exists",
+        "App automatically initializes user profile on authenticated load",
+        "Dashboard view loads automatically for authenticated users",
+        "Login flow only triggers for users without valid delegations"
       ]
     },
     {
-      "id": "REQ-42",
-      "text": "Add ranked and unranked game variants for Classic Mode and Quick Mode in both backend (main.mo) and frontend (GameLobby.tsx). Allow users to toggle between ranked (affects player statistics and leaderboards) and unranked (practice mode with no stat tracking) when creating games.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "Ranked & unranked"
-        ]
-      },
-      "acceptanceCriteria": [
-        "GameLobby includes ranked/unranked toggle for Classic and Quick modes",
-        "Ranked games update player win/loss statistics and leaderboard rankings",
-        "Unranked games do not affect player statistics or rankings",
-        "Game session records store ranked/unranked status",
-        "UI clearly indicates whether a game is ranked or unranked"
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "text": "Optimize Quick Mode UI and controls in GameBoard.tsx for mobile devices. Ensure touch interactions are responsive, dice rolls are instant, and the turn timer is prominently displayed. Test on mobile viewports to ensure the shortened board and faster gameplay work smoothly on smaller screens.",
+      "id": "REQ-83",
+      "text": "Fix delegation validation logic in useInternetIdentity.ts to properly verify delegation expiry and chain validation. Ensure expired or invalid delegations are detected and cleared, triggering re-authentication only when necessary.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-final"
         ],
         "quotes": [
-          "Designed for mobile users"
+          "Resolve login issues"
         ]
       },
       "acceptanceCriteria": [
-        "Quick Mode UI is fully responsive on mobile viewports (320px-768px)",
-        "Touch targets for dice and tokens are appropriately sized (min 44x44px)",
-        "Turn timer is clearly visible on mobile screens",
-        "Dice rolling and piece movement animations are optimized for mobile performance",
-        "No UI elements overlap or become unusable on small screens"
+        "Delegation expiry is correctly validated on app load",
+        "Invalid or expired delegations are cleared from storage",
+        "Valid delegations pass verification and maintain session",
+        "Re-authentication only required for invalid delegations"
+      ]
+    },
+    {
+      "id": "REQ-84",
+      "text": "Implement automatic delegation refresh in useInternetIdentity.ts that renews delegations before they expire. Set up a timer to refresh delegations proactively, maintaining seamless authenticated sessions without interruption.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Resolve login issues"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Delegation refresh timer is set up on authentication",
+        "Delegations are renewed before expiry time",
+        "Authenticated sessions remain active without user intervention",
+        "Refresh failures trigger graceful re-authentication flow"
+      ]
+    },
+    {
+      "id": "REQ-85",
+      "text": "Add error handling in useInternetIdentity.ts for authentication failures during automatic login attempts. Display user-friendly error messages and provide a manual login fallback if automatic authentication fails.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Resolve login issues"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Authentication errors are caught and logged",
+        "User-friendly error messages displayed for auth failures",
+        "Manual login button available as fallback",
+        "Failed automatic login attempts do not crash the app"
+      ]
+    },
+    {
+      "id": "REQ-86",
+      "text": "Update Header.tsx to reflect automatic login state. Remove or hide the login button when user is automatically authenticated, and ensure logout functionality remains accessible.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-final"
+        ],
+        "quotes": [
+          "Everyone automatically login with internet identity"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Login button hidden when user is authenticated",
+        "User profile or wallet balance displayed for authenticated users",
+        "Logout button remains visible and functional",
+        "Authentication state updates reflected in header UI"
       ]
     }
   ],
   "constraints": [
-    "All game mode logic must be implemented in the single main actor in backend/main.mo",
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
-    "Do not edit Shadcn UI components in frontend/src/components/ui",
-    "Maintain compatibility with existing demo and live game types"
+    "Do not modify backend/main.mo or backend/migration.mo",
+    "Preserve existing Internet Identity integration patterns",
+    "Maintain compatibility with existing authentication flows",
+    "Do not change frontend/src/main.tsx or frontend/src/components/ui/* files"
   ],
   "nonGoals": [
-    "Magic Mode implementation (reserved for future phases)",
-    "Team Mode or 2v2 gameplay (not part of Phase 2)",
-    "Tournament Mode with multiple rounds (not part of Phase 2)",
-    "Real-time multiplayer synchronization (future phase)",
-    "Advanced leaderboard UI (basic ranked tracking only)",
-    "Power-ups or special abilities (explicitly excluded from Classic and Quick modes)"
+    "Implementing alternative authentication providers",
+    "Adding multi-factor authentication",
+    "Changing the Internet Identity provider configuration",
+    "Modifying wallet connection logic"
   ],
   "imageRequirements": {
     "required": [],

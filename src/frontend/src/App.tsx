@@ -22,7 +22,7 @@ import { GameMode } from './backend';
 type View = 'dashboard' | 'lobby' | 'game' | 'wallet' | 'profile' | 'about' | 'guide';
 
 export default function App() {
-  const { identity, isInitializing: authInitializing } = useInternetIdentity();
+  const { identity, isInitializing: authInitializing, loginError: authError } = useInternetIdentity();
   const { actor, isFetching: actorFetching } = useActor();
   const { data: initData, isLoading: initLoading, error: initError } = useAutomaticUserInitialization();
   const { data: userProfile, isLoading: profileLoading, isFetched: profileFetched } = useGetCallerUserProfile();
@@ -34,9 +34,12 @@ export default function App() {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
 
   const isAuthenticated = !!identity;
-  const isLoading = authInitializing || actorFetching || (isAuthenticated && initLoading);
-  const hasError = initError;
+  
+  // Wait for auth initialization to complete before showing content
+  const isLoading = authInitializing || (isAuthenticated && (actorFetching || initLoading));
+  const hasError = authError || initError;
 
+  // Show profile setup only when authenticated, profile is fetched, and profile is null
   useEffect(() => {
     if (isAuthenticated && profileFetched && !profileLoading && userProfile === null) {
       setShowProfileSetup(true);
@@ -44,6 +47,15 @@ export default function App() {
       setShowProfileSetup(false);
     }
   }, [isAuthenticated, userProfile, profileLoading, profileFetched]);
+
+  // Display authentication errors
+  useEffect(() => {
+    if (authError && !authInitializing) {
+      toast.error('Authentication Error', {
+        description: authError.message || 'Failed to authenticate. Please try logging in manually.',
+      });
+    }
+  }, [authError, authInitializing]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
@@ -68,19 +80,25 @@ export default function App() {
     });
   };
 
+  // Loading state - show while initializing authentication or loading user data
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-16 h-16 animate-spin text-purple-400 mx-auto mb-4" />
-          <p className="text-xl text-white">Loading LudoVerse...</p>
-          <p className="text-sm text-gray-400 mt-2">Connecting to the Internet Computer</p>
+          <p className="text-xl text-white">
+            {authInitializing ? 'Initializing...' : 'Loading LudoVerse...'}
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            {authInitializing ? 'Checking for saved session' : 'Connecting to the Internet Computer'}
+          </p>
         </div>
       </div>
     );
   }
 
-  if (hasError) {
+  // Error state - show if there's a critical error
+  if (hasError && initError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900 flex items-center justify-center p-4">
         <Card className="max-w-md w-full bg-black/50 backdrop-blur-xl border-red-500/30">
@@ -117,6 +135,7 @@ export default function App() {
     );
   }
 
+  // Profile setup flow - only show when authenticated and profile doesn't exist
   if (showProfileSetup && isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900">
@@ -130,6 +149,7 @@ export default function App() {
     );
   }
 
+  // Main application view
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900">
       {currentView !== 'game' && <Header currentView={currentView} onNavigate={setCurrentView} />}

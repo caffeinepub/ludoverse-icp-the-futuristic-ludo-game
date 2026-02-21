@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-gamelobby-tsx-to-display-a-mode-selector-with-three-options-classic-mode-quick-mode-and-master-mode-each-mode-card-should-show-its-key-characteristics-player-count-special-rules-time-limits-allow-users-to-select-their-preferred-mode-before-creating-a-new-game",
-      "featureTitle": "Update GameLobby.tsx to display a mode selector with three options: Classic Mode, Quick Mode, and Master Mode. Each mode card should show its key characteristics (player count, special rules, time limits). Allow users to select their preferred mode before creating a new game.",
+      "featureId": "feature-update-app-tsx-to-remove-any-manual-login-prompts-or-authentication-gates-when-a-valid-internet-identity-delegation-is-detected-during-initialization-automatically-proceed-to-user-profile-initialization-and-dashboard-navigation-when-authentication-is-restored",
+      "featureTitle": "Update App.tsx to remove any manual login prompts or authentication gates when a valid Internet Identity delegation is detected during initialization. Automatically proceed to user profile initialization and dashboard navigation when authentication is restored.",
       "files": [
-        "frontend/src/components/GameLobby.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -17,15 +17,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-40"
+        "REQ-82"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-gameboard-tsx-to-render-mode-specific-board-layouts-and-rules-classic-mode-uses-the-standard-3d-board-with-full-paths-quick-mode-renders-a-shortened-board-with-30-40-fewer-tiles-and-displays-a-visible-turn-timer-master-mode-shows-dice-choice-ui-with-2-3-selectable-dice-options-before-each-roll",
-      "featureTitle": "Update GameBoard.tsx to render mode-specific board layouts and rules. Classic Mode uses the standard 3D board with full paths. Quick Mode renders a shortened board with 30-40% fewer tiles and displays a visible turn timer. Master Mode shows dice choice UI with 2-3 selectable dice options before each roll.",
+      "featureId": "feature-add-error-handling-in-useinternetidentity-ts-for-authentication-failures-during-automatic-login-attempts-display-user-friendly-error-messages-and-provide-a-manual-login-fallback-if-automatic-authentication-fails",
+      "featureTitle": "Add error handling in useInternetIdentity.ts for authentication failures during automatic login attempts. Display user-friendly error messages and provide a manual login fallback if automatic authentication fails.",
       "files": [
-        "frontend/src/components/GameBoard.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -37,15 +37,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-41"
+        "REQ-85"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-ranked-and-unranked-game-variants-for-classic-mode-and-quick-mode-in-both-backend-main-mo-and-frontend-gamelobby-tsx-allow-users-to-toggle-between-ranked-affects-player-statistics-and-leaderboards-and-unranked-practice-mode-with-no-stat-tracking-when-creating-games",
-      "featureTitle": "Add ranked and unranked game variants for Classic Mode and Quick Mode in both backend (main.mo) and frontend (GameLobby.tsx). Allow users to toggle between ranked (affects player statistics and leaderboards) and unranked (practice mode with no stat tracking) when creating games.",
+      "featureId": "feature-update-header-tsx-to-reflect-automatic-login-state-remove-or-hide-the-login-button-when-user-is-automatically-authenticated-and-ensure-logout-functionality-remains-accessible",
+      "featureTitle": "Update Header.tsx to reflect automatic login state. Remove or hide the login button when user is automatically authenticated, and ensure logout functionality remains accessible.",
       "files": [
-        "frontend/src/components/GameLobby.tsx"
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "authorization@3.0.0",
@@ -57,28 +57,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-42"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-optimize-quick-mode-ui-and-controls-in-gameboard-tsx-for-mobile-devices-ensure-touch-interactions-are-responsive-dice-rolls-are-instant-and-the-turn-timer-is-prominently-displayed-test-on-mobile-viewports-to-ensure-the-shortened-board-and-faster-gameplay-work-smoothly-on-smaller-screens",
-      "featureTitle": "Optimize Quick Mode UI and controls in GameBoard.tsx for mobile devices. Ensure touch interactions are responsive, dice rolls are instant, and the turn timer is prominently displayed. Test on mobile viewports to ensure the shortened board and faster gameplay work smoothly on smaller screens.",
-      "files": [
-        "frontend/src/components/GameBoard.tsx",
-        "frontend/src/index.css"
-      ],
-      "components": [
-        "authorization@3.0.0",
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-43"
+        "REQ-86"
       ],
       "confidence": "high"
     }

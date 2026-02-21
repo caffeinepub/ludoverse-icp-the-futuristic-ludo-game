@@ -53,6 +53,10 @@ export const RankedStatus = IDL.Variant({
   'ranked' : IDL.Null,
   'unranked' : IDL.Null,
 });
+export const RoomType = IDL.Variant({
+  'privateRoom' : IDL.Null,
+  'isPublic' : IDL.Null,
+});
 export const BotDifficulty = IDL.Variant({
   'easy' : IDL.Null,
   'hard' : IDL.Null,
@@ -69,6 +73,13 @@ export const GameStatus = IDL.Variant({
   'completed' : IDL.Null,
   'waiting' : IDL.Null,
 });
+export const DiceRoll = IDL.Record({
+  'seed' : IDL.Text,
+  'diceResult' : IDL.Nat,
+  'rollNumber' : IDL.Nat,
+  'timestamp' : IDL.Int,
+  'playerPrincipal' : IDL.Principal,
+});
 export const GameSession = IDL.Record({
   'id' : IDL.Principal,
   'status' : GameStatus,
@@ -78,6 +89,7 @@ export const GameSession = IDL.Record({
   'winner' : IDL.Opt(IDL.Principal),
   'isDemo' : IDL.Bool,
   'players' : IDL.Vec(IDL.Principal),
+  'diceHistory' : IDL.Vec(DiceRoll),
   'rankedStatus' : RankedStatus,
 });
 export const Player = IDL.Record({
@@ -93,6 +105,21 @@ export const Player = IDL.Record({
   'currentGame' : IDL.Opt(IDL.Principal),
   'draws' : IDL.Float64,
   'lastActive' : IDL.Int,
+});
+export const MatchmakingRoom = IDL.Record({
+  'id' : IDL.Principal,
+  'status' : IDL.Variant({
+    'active' : IDL.Null,
+    'completed' : IDL.Null,
+    'waiting' : IDL.Null,
+  }),
+  'creator' : IDL.Principal,
+  'playerCount' : IDL.Nat,
+  'isDemo' : IDL.Bool,
+  'players' : IDL.Vec(IDL.Principal),
+  'gameMode' : GameMode,
+  'roomType' : RoomType,
+  'maxPlayers' : IDL.Nat,
 });
 export const UserProfile = IDL.Record({
   'gamesPlayed' : IDL.Float64,
@@ -158,6 +185,11 @@ export const idlService = IDL.Service({
       [IDL.Principal],
       [],
     ),
+  'createMatchmakingRoom' : IDL.Func(
+      [RoomType, GameMode, IDL.Nat, IDL.Bool],
+      [IDL.Principal],
+      [],
+    ),
   'createUser' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'deposit' : IDL.Func([IDL.Float64], [IDL.Bool], []),
   'getAllBots' : IDL.Func([], [IDL.Vec(BotConfig)], ['query']),
@@ -166,9 +198,15 @@ export const idlService = IDL.Service({
   'getAllWallets' : IDL.Func([], [IDL.Vec(Wallet)], ['query']),
   'getAvailableBots' : IDL.Func([], [IDL.Vec(BotConfig)], ['query']),
   'getAvailableGames' : IDL.Func([], [IDL.Vec(GameSession)], ['query']),
+  'getAvailableRooms' : IDL.Func([], [IDL.Vec(MatchmakingRoom)], ['query']),
   'getBalance' : IDL.Func([], [IDL.Float64], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getDiceHistory' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(IDL.Vec(DiceRoll))],
+      ['query'],
+    ),
   'getGame' : IDL.Func([IDL.Principal], [IDL.Opt(GameSession)], ['query']),
   'getOfficialAccount' : IDL.Func([IDL.Bool], [IDL.Text], ['query']),
   'getOfficialWallets' : IDL.Func([], [IDL.Vec(OfficialWallet)], ['query']),
@@ -196,7 +234,20 @@ export const idlService = IDL.Service({
   'isFirstTime' : IDL.Func([], [IDL.Bool], ['query']),
   'isPremium' : IDL.Func([], [IDL.Bool], ['query']),
   'joinGame' : IDL.Func([IDL.Principal, IDL.Bool], [IDL.Bool], []),
+  'joinRoom' : IDL.Func([IDL.Principal], [IDL.Bool], []),
+  'leaveRoom' : IDL.Func([IDL.Principal], [IDL.Bool], []),
   'registerBot' : IDL.Func([BotDifficulty], [IDL.Principal], []),
+  'rollDice' : IDL.Func(
+      [IDL.Principal, IDL.Principal],
+      [
+        IDL.Record({
+          'result' : IDL.Nat,
+          'valid' : IDL.Bool,
+          'seed' : IDL.Text,
+        }),
+      ],
+      [],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updatePlayer' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'upgradeToPremium' : IDL.Func([], [IDL.Bool], []),
@@ -251,6 +302,10 @@ export const idlFactory = ({ IDL }) => {
     'ranked' : IDL.Null,
     'unranked' : IDL.Null,
   });
+  const RoomType = IDL.Variant({
+    'privateRoom' : IDL.Null,
+    'isPublic' : IDL.Null,
+  });
   const BotDifficulty = IDL.Variant({
     'easy' : IDL.Null,
     'hard' : IDL.Null,
@@ -267,6 +322,13 @@ export const idlFactory = ({ IDL }) => {
     'completed' : IDL.Null,
     'waiting' : IDL.Null,
   });
+  const DiceRoll = IDL.Record({
+    'seed' : IDL.Text,
+    'diceResult' : IDL.Nat,
+    'rollNumber' : IDL.Nat,
+    'timestamp' : IDL.Int,
+    'playerPrincipal' : IDL.Principal,
+  });
   const GameSession = IDL.Record({
     'id' : IDL.Principal,
     'status' : GameStatus,
@@ -276,6 +338,7 @@ export const idlFactory = ({ IDL }) => {
     'winner' : IDL.Opt(IDL.Principal),
     'isDemo' : IDL.Bool,
     'players' : IDL.Vec(IDL.Principal),
+    'diceHistory' : IDL.Vec(DiceRoll),
     'rankedStatus' : RankedStatus,
   });
   const Player = IDL.Record({
@@ -291,6 +354,21 @@ export const idlFactory = ({ IDL }) => {
     'currentGame' : IDL.Opt(IDL.Principal),
     'draws' : IDL.Float64,
     'lastActive' : IDL.Int,
+  });
+  const MatchmakingRoom = IDL.Record({
+    'id' : IDL.Principal,
+    'status' : IDL.Variant({
+      'active' : IDL.Null,
+      'completed' : IDL.Null,
+      'waiting' : IDL.Null,
+    }),
+    'creator' : IDL.Principal,
+    'playerCount' : IDL.Nat,
+    'isDemo' : IDL.Bool,
+    'players' : IDL.Vec(IDL.Principal),
+    'gameMode' : GameMode,
+    'roomType' : RoomType,
+    'maxPlayers' : IDL.Nat,
   });
   const UserProfile = IDL.Record({
     'gamesPlayed' : IDL.Float64,
@@ -356,6 +434,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Principal],
         [],
       ),
+    'createMatchmakingRoom' : IDL.Func(
+        [RoomType, GameMode, IDL.Nat, IDL.Bool],
+        [IDL.Principal],
+        [],
+      ),
     'createUser' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'deposit' : IDL.Func([IDL.Float64], [IDL.Bool], []),
     'getAllBots' : IDL.Func([], [IDL.Vec(BotConfig)], ['query']),
@@ -364,9 +447,15 @@ export const idlFactory = ({ IDL }) => {
     'getAllWallets' : IDL.Func([], [IDL.Vec(Wallet)], ['query']),
     'getAvailableBots' : IDL.Func([], [IDL.Vec(BotConfig)], ['query']),
     'getAvailableGames' : IDL.Func([], [IDL.Vec(GameSession)], ['query']),
+    'getAvailableRooms' : IDL.Func([], [IDL.Vec(MatchmakingRoom)], ['query']),
     'getBalance' : IDL.Func([], [IDL.Float64], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getDiceHistory' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(IDL.Vec(DiceRoll))],
+        ['query'],
+      ),
     'getGame' : IDL.Func([IDL.Principal], [IDL.Opt(GameSession)], ['query']),
     'getOfficialAccount' : IDL.Func([IDL.Bool], [IDL.Text], ['query']),
     'getOfficialWallets' : IDL.Func([], [IDL.Vec(OfficialWallet)], ['query']),
@@ -394,7 +483,20 @@ export const idlFactory = ({ IDL }) => {
     'isFirstTime' : IDL.Func([], [IDL.Bool], ['query']),
     'isPremium' : IDL.Func([], [IDL.Bool], ['query']),
     'joinGame' : IDL.Func([IDL.Principal, IDL.Bool], [IDL.Bool], []),
+    'joinRoom' : IDL.Func([IDL.Principal], [IDL.Bool], []),
+    'leaveRoom' : IDL.Func([IDL.Principal], [IDL.Bool], []),
     'registerBot' : IDL.Func([BotDifficulty], [IDL.Principal], []),
+    'rollDice' : IDL.Func(
+        [IDL.Principal, IDL.Principal],
+        [
+          IDL.Record({
+            'result' : IDL.Nat,
+            'valid' : IDL.Bool,
+            'seed' : IDL.Text,
+          }),
+        ],
+        [],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updatePlayer' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'upgradeToPremium' : IDL.Func([], [IDL.Bool], []),
