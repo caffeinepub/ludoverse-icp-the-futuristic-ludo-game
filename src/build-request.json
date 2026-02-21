@@ -1,0 +1,194 @@
+{
+  "kind": "build_request",
+  "title": "Implement modular game modes: Classic, Quick, and Master",
+  "projectName": "LudoVerse",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-36",
+      "text": "Extend the backend GameMode enumeration in main.mo to include Classic, Quick, and Master mode variants. Each mode should be a distinct enum value that can be stored in GameSession records.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "1️⃣ Classic Mode",
+          "2️⃣ Quick Mode",
+          "Master Mode"
+        ]
+      },
+      "acceptanceCriteria": [
+        "GameMode enum includes Classic, Quick, and Master variants",
+        "GameSession type stores the selected game mode",
+        "Mode selection persists throughout the game lifecycle"
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Implement Classic Mode backend rules in main.mo: traditional Ludo rules with support for 2-4 players, no power-ups, and separate ranked/unranked tracking. Store match results with mode-specific statistics.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Traditional Ludo rules2–4 players",
+          "No power-ups",
+          "Ranked & unranked"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Classic Mode enforces traditional Ludo movement and capture rules",
+        "Supports 2, 3, or 4 player games",
+        "Tracks ranked and unranked games separately",
+        "No power-up logic is applied in Classic Mode"
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Implement Quick Mode backend rules in main.mo: shortened board paths (reduce path length by 30-40%), faster dice mechanics (allow extra rolls on 6s with shorter cooldown), and time-limited turns (30-45 second turn timer). Support 2-4 players with no power-ups and ranked/unranked variants.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Shortened paths",
+          "Faster dice",
+          "Time-limited turns",
+          "Designed for mobile users"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Quick Mode uses board paths 30-40% shorter than Classic Mode",
+        "Dice rolling has reduced cooldown and faster extra-roll mechanics",
+        "Turn timer enforces 30-45 second time limit per turn",
+        "Auto-skips turn if timer expires",
+        "Supports 2-4 players with no power-ups",
+        "Tracks ranked and unranked Quick Mode games separately"
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Implement Master Mode backend rules in main.mo: skill-heavy gameplay with dice choice options. Allow players to choose between multiple dice values or dice roll modifiers on their turn. Include advanced move validation and strategic gameplay mechanics.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Skill-heavy rules:",
+          "Dice choice options"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Master Mode presents 2-3 dice options per turn for player selection",
+        "Dice choice system is deterministic and fair across all players",
+        "Advanced move validation prevents trivial or exploitative strategies",
+        "Tracks Master Mode statistics separately from other modes"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Update GameLobby.tsx to display a mode selector with three options: Classic Mode, Quick Mode, and Master Mode. Each mode card should show its key characteristics (player count, special rules, time limits). Allow users to select their preferred mode before creating a new game.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Each mode is modular."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Mode selector displays three distinct mode options with descriptions",
+        "Classic Mode shows: Traditional rules, 2-4 players, ranked/unranked",
+        "Quick Mode shows: Shortened paths, faster dice, time limits, mobile-optimized",
+        "Master Mode shows: Skill-heavy, dice choice options",
+        "Selected mode is highlighted visually",
+        "Selected mode is passed to game creation flow"
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Update GameBoard.tsx to render mode-specific board layouts and rules. Classic Mode uses the standard 3D board with full paths. Quick Mode renders a shortened board with 30-40% fewer tiles and displays a visible turn timer. Master Mode shows dice choice UI with 2-3 selectable dice options before each roll.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Shortened paths",
+          "Time-limited turns",
+          "Dice choice options"
+        ]
+      },
+      "acceptanceCriteria": [
+        "GameBoard adapts board path length based on selected mode",
+        "Quick Mode displays a countdown timer for each turn",
+        "Master Mode shows dice choice UI with clickable dice options",
+        "Mode-specific rules are clearly indicated in the UI",
+        "Turn timer auto-advances turn when time expires in Quick Mode"
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Add ranked and unranked game variants for Classic Mode and Quick Mode in both backend (main.mo) and frontend (GameLobby.tsx). Allow users to toggle between ranked (affects player statistics and leaderboards) and unranked (practice mode with no stat tracking) when creating games.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Ranked & unranked"
+        ]
+      },
+      "acceptanceCriteria": [
+        "GameLobby includes ranked/unranked toggle for Classic and Quick modes",
+        "Ranked games update player win/loss statistics and leaderboard rankings",
+        "Unranked games do not affect player statistics or rankings",
+        "Game session records store ranked/unranked status",
+        "UI clearly indicates whether a game is ranked or unranked"
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Optimize Quick Mode UI and controls in GameBoard.tsx for mobile devices. Ensure touch interactions are responsive, dice rolls are instant, and the turn timer is prominently displayed. Test on mobile viewports to ensure the shortened board and faster gameplay work smoothly on smaller screens.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-5"
+        ],
+        "quotes": [
+          "Designed for mobile users"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Quick Mode UI is fully responsive on mobile viewports (320px-768px)",
+        "Touch targets for dice and tokens are appropriately sized (min 44x44px)",
+        "Turn timer is clearly visible on mobile screens",
+        "Dice rolling and piece movement animations are optimized for mobile performance",
+        "No UI elements overlap or become unusable on small screens"
+      ]
+    }
+  ],
+  "constraints": [
+    "All game mode logic must be implemented in the single main actor in backend/main.mo",
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Do not edit Shadcn UI components in frontend/src/components/ui",
+    "Maintain compatibility with existing demo and live game types"
+  ],
+  "nonGoals": [
+    "Magic Mode implementation (reserved for future phases)",
+    "Team Mode or 2v2 gameplay (not part of Phase 2)",
+    "Tournament Mode with multiple rounds (not part of Phase 2)",
+    "Real-time multiplayer synchronization (future phase)",
+    "Advanced leaderboard UI (basic ranked tracking only)",
+    "Power-ups or special abilities (explicitly excluded from Classic and Quick modes)"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

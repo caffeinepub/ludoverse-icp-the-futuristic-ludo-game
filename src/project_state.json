@@ -1,0 +1,441 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 17,
+  "summary": "LudoVerse - An advanced, premium multiplayer Ludo game with original assets, colorful casino-style UI, and multiple game modes. Phase 1 (complete) delivered core visual and UX upgrades including 3D board, physics-based dice, 3D tokens, and smooth animations. Phase 2 focuses on implementing modular game modes: Classic Mode (traditional rules, 2-4 players, ranked/unranked), Quick Mode (shortened paths, faster dice, time-limited turns for mobile), and Master Mode (skill-heavy with dice choice options). Future phases will add Magic Mode, real-time multiplayer, ICP betting, and Web3 features.",
+  "architectural_notes": [
+    "Game has two modes: Demo (free practice) and Live (ICP betting)",
+    "AI agent system needed to simulate player behavior for co-founder",
+    "Demo mode serves as onboarding funnel to live betting games",
+    "Game pieces must move with smooth animations when dice is rolled",
+    "Ludo design should blend conventional Ludo aesthetics with futuristic advanced technology styling",
+    "Reference Yalla Ludo for gameplay variations and styles",
+    "Phase 1 focuses on core visual/UX upgrades without betting features",
+    "Using Unity WebGL/Mobile with URP lighting for 3D rendering",
+    "DOTween library for smooth animations and transitions",
+    "Casino-style aesthetic with gold, neon, and gradient colors"
+  ],
+  "known_issues": [
+    "Demo mode not functioning - players cannot practice Ludo for free",
+    "AI agent not automatically playing games in demo or live modes",
+    "Demo games and AI opponent not working when users open the app",
+    "Deployment error blocking new builds - must be resolved before implementing demo mode fixes",
+    "Ludo game interface lacks clarity - UI elements not clearly visible or distinguishable",
+    "Game pieces not moving when dice is rolled - movement logic or animations broken"
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-add-a-demo-practice-game-mode-where-users-can-play-ludo-for-free-without-betting-real-icp-coins-demo-games-should-use-virtual-currency-and-allow-users-to-experience-the-full-gameplay-before-transitioning-to-live-betting-games",
+      "title": "Add a demo/practice game mode where users can play Ludo for free without betting real ICP coins. Demo games should use virtual currency and allow users to experience the full gameplay before transitioning to live betting games.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-ai-agent-named-ludoverse-ai-that-represents-the-co-founder-and-can-play-ludo-games-autonomously-the-ai-should-make-intelligent-moves-roll-dice-and-compete-like-a-real-player",
+      "title": "Create an AI agent named 'LudoVerse AI' that represents the co-founder and can play Ludo games autonomously. The AI should make intelligent moves, roll dice, and compete like a real player.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-the-ludoverse-ai-agent-to-participate-in-both-live-betting-games-with-real-icp-and-demo-practice-games-users-should-be-able-to-specifically-choose-to-play-against-the-ai-agent",
+      "title": "Enable the LudoVerse AI agent to participate in both live betting games with real ICP and demo/practice games. Users should be able to specifically choose to play against the AI agent.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-game-lobby-ui-to-clearly-differentiate-between-live-betting-games-and-demo-practice-games-add-a-mode-selector-or-separate-sections-for-each-game-type",
+      "title": "Update the game lobby UI to clearly differentiate between live betting games and demo practice games. Add a mode selector or separate sections for each game type.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-investigate-and-resolve-the-deployment-error-that-occurred-during-the-previous-build-check-for-motoko-compilation-errors-canister-upgrade-issues-or-network-connectivity-problems-ensure-the-canister-deploys-successfully-with-all-recent-changes",
+      "title": "Investigate and resolve the deployment error that occurred during the previous build. Check for Motoko compilation errors, canister upgrade issues, or network connectivity problems. Ensure the canister deploys successfully with all recent changes.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-demo-practice-game-mode-is-fully-functional-with-virtual-currency-ensure-users-can-play-free-ludo-games-without-betting-real-icp-coins-and-that-demo-games-use-a-separate-virtual-currency-system",
+      "title": "Verify that the demo/practice game mode is fully functional with virtual currency. Ensure users can play free Ludo games without betting real ICP coins, and that demo games use a separate virtual currency system.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-confirm-that-the-ludoverse-ai-agent-is-operational-and-can-play-autonomously-in-both-live-betting-games-and-demo-practice-games-ensure-the-ai-makes-intelligent-moves-rolls-dice-and-competes-like-a-real-player",
+      "title": "Confirm that the LudoVerse AI agent is operational and can play autonomously in both live betting games and demo practice games. Ensure the AI makes intelligent moves, rolls dice, and competes like a real player.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-validate-that-the-game-lobby-ui-clearly-distinguishes-between-live-betting-games-and-demo-practice-games-ensure-the-mode-selector-or-separate-sections-allow-users-to-easily-choose-their-preferred-game-type",
+      "title": "Validate that the game lobby UI clearly distinguishes between live betting games and demo practice games. Ensure the mode selector or separate sections allow users to easily choose their preferred game type.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-run-end-to-end-testing-to-ensure-all-game-flows-work-correctly-user-registration-demo-game-play-transition-to-live-games-ai-opponent-gameplay-wallet-operations-and-game-completion-fix-any-broken-functionality-discovered-during-testing",
+      "title": "Run end-to-end testing to ensure all game flows work correctly: user registration, demo game play, transition to live games, AI opponent gameplay, wallet operations, and game completion. Fix any broken functionality discovered during testing.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-demo-game-mode-functionality-so-players-can-start-and-complete-free-practice-ludo-games-using-virtual-currency-without-betting-real-icp-coins-ensure-demo-games-are-fully-playable-with-all-game-mechanics-dice-rolling-piece-movement-turn-management-functioning-correctly",
+      "title": "Fix the demo game mode functionality so players can start and complete free practice Ludo games using virtual currency without betting real ICP coins. Ensure demo games are fully playable with all game mechanics (dice rolling, piece movement, turn management) functioning correctly.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-activate-the-ludoverse-ai-agent-to-automatically-join-and-play-games-autonomously-in-both-demo-and-live-game-modes-the-ai-should-make-intelligent-moves-roll-dice-and-compete-without-manual-intervention",
+      "title": "Activate the LudoVerse AI agent to automatically join and play games autonomously in both demo and live game modes. The AI should make intelligent moves, roll dice, and compete without manual intervention.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-demo-games-and-the-ai-opponent-are-immediately-operational-when-users-first-open-the-app-without-requiring-additional-configuration-or-setup-steps",
+      "title": "Ensure demo games and the AI opponent are immediately operational when users first open the app, without requiring additional configuration or setup steps.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-demo-mode-virtual-currency-system-with-the-existing-wallet-infrastructure-demo-currency-should-be-clearly-distinguished-from-real-icp-balances-in-the-ui-and-should-not-interact-with-actual-blockchain-transactions",
+      "title": "Integrate demo mode virtual currency system with the existing wallet infrastructure. Demo currency should be clearly distinguished from real ICP balances in the UI and should not interact with actual blockchain transactions.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-gamelobby-component-to-ensure-demo-games-are-immediately-playable-when-the-demo-game-type-is-selected-remove-or-bypass-any-icp-balance-validation-checks-for-demo-games-and-display-clear-visual-indicators-that-demo-games-use-virtual-currency",
+      "title": "Update the GameLobby component to ensure demo games are immediately playable when the 'Demo' game type is selected. Remove or bypass any ICP balance validation checks for demo games and display clear visual indicators that demo games use virtual currency.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-gameboard-component-handles-demo-games-correctly-allowing-full-gameplay-dice-rolling-piece-movement-turn-progression-game-completion-without-triggering-any-icp-wallet-operations-or-balance-updates",
+      "title": "Ensure the GameBoard component handles demo games correctly, allowing full gameplay (dice rolling, piece movement, turn progression, game completion) without triggering any ICP wallet operations or balance updates.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-game-piece-movement-logic-in-gameboard-tsx-so-that-all-player-pieces-move-correctly-when-the-dice-is-rolled-implement-smooth-animation-for-piece-movement-along-the-board-path-including-proper-collision-detection-home-base-entry-exit-logic-and-capturing-opponent-pieces-according-to-standard-ludo-rules",
+      "title": "Fix the game piece movement logic in GameBoard.tsx so that all player pieces move correctly when the dice is rolled. Implement smooth animation for piece movement along the board path, including proper collision detection, home base entry/exit logic, and capturing opponent pieces according to standard Ludo rules.",
+      "reqIds": [
+        "REQ-20",
+        "REQ-25"
+      ],
+      "version": 2
+    },
+    {
+      "id": "feature-redesign-the-ludo-board-canvas-rendering-in-gameboard-tsx-to-use-conventional-ludo-colors-red-green-yellow-blue-for-the-four-players-with-an-attractive-futuristic-advanced-technology-aesthetic-apply-neon-glow-effects-metallic-gradients-holographic-textures-or-circuit-board-patterns-while-maintaining-clear-visibility-and-conventional-ludo-board-layout-cross-shaped-board-with-four-home-bases-in-corners-central-safe-zone-and-colored-paths",
+      "title": "Redesign the Ludo board canvas rendering in GameBoard.tsx to use conventional Ludo colors (red, green, yellow, blue for the four players) with an attractive futuristic advanced technology aesthetic. Apply neon glow effects, metallic gradients, holographic textures, or circuit-board patterns while maintaining clear visibility and conventional Ludo board layout (cross-shaped board with four home bases in corners, central safe zone, and colored paths).",
+      "reqIds": [
+        "REQ-21",
+        "REQ-26"
+      ],
+      "version": 2
+    },
+    {
+      "id": "feature-implement-a-realistic-3d-dice-rolling-animation-in-gameboard-tsx-using-css-transforms-or-canvas-animation-the-dice-should-tumble-and-rotate-in-3d-space-before-landing-on-the-rolled-number-mimicking-the-physics-of-a-real-dice-roll-add-corresponding-dice-roll-sound-effects-that-play-during-the-rolling-animation",
+      "title": "Implement a realistic 3D dice rolling animation in GameBoard.tsx using CSS transforms or canvas animation. The dice should tumble and rotate in 3D space before landing on the rolled number, mimicking the physics of a real dice roll. Add corresponding dice roll sound effects that play during the rolling animation.",
+      "reqIds": [
+        "REQ-22",
+        "REQ-27"
+      ],
+      "version": 2
+    },
+    {
+      "id": "feature-improve-the-overall-visual-clarity-of-the-ludo-game-interface-in-gameboard-tsx-by-increasing-contrast-adding-clear-labels-improving-piece-visibility-and-ensuring-all-interactive-elements-are-easily-identifiable-make-sure-player-turn-indicators-available-moves-and-game-status-are-prominently-displayed",
+      "title": "Improve the overall visual clarity of the Ludo game interface in GameBoard.tsx by increasing contrast, adding clear labels, improving piece visibility, and ensuring all interactive elements are easily identifiable. Make sure player turn indicators, available moves, and game status are prominently displayed.",
+      "reqIds": [
+        "REQ-23",
+        "REQ-28"
+      ],
+      "version": 2
+    },
+    {
+      "id": "feature-research-yalla-ludo-s-gameplay-variations-and-implement-multiple-ludo-game-modes-in-the-backend-main-mo-and-frontend-gamelobby-tsx-gameboard-tsx-add-support-for-different-rule-variants-such-as-quick-mode-fewer-pieces-or-shorter-paths-team-mode-2v2-gameplay-or-tournament-mode-multiple-rounds-with-scoring-allow-players-to-select-their-preferred-game-style-when-creating-a-new-game-in-the-lobby",
+      "title": "Research Yalla Ludo's gameplay variations and implement multiple Ludo game modes in the backend (main.mo) and frontend (GameLobby.tsx, GameBoard.tsx). Add support for different rule variants such as Quick Mode (fewer pieces or shorter paths), Team Mode (2v2 gameplay), or Tournament Mode (multiple rounds with scoring). Allow players to select their preferred game style when creating a new game in the lobby.",
+      "reqIds": [
+        "REQ-24",
+        "REQ-29"
+      ],
+      "version": 2
+    },
+    {
+      "id": "feature-replace-the-current-2d-canvas-based-ludo-board-in-gameboard-tsx-with-a-polished-3d-board-featuring-depth-elevation-and-glow-effects-implement-casino-style-visual-design-using-gold-neon-and-gradient-colors-add-subtle-ambient-lighting-and-shadow-effects-to-create-a-premium-luxurious-appearance",
+      "title": "Replace the current 2D canvas-based Ludo board in GameBoard.tsx with a polished 3D board featuring depth, elevation, and glow effects. Implement casino-style visual design using gold, neon, and gradient colors. Add subtle ambient lighting and shadow effects to create a premium, luxurious appearance.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-physics-based-3d-dice-rolling-animation-in-gameboard-tsx-the-dice-should-tumble-and-rotate-in-3d-space-with-realistic-physics-simulation-before-landing-on-the-rolled-number-replace-the-current-2d-dice-rendering-with-a-fully-interactive-3d-dice-model",
+      "title": "Implement physics-based 3D dice rolling animation in GameBoard.tsx. The dice should tumble and rotate in 3D space with realistic physics simulation before landing on the rolled number. Replace the current 2D dice rendering with a fully interactive 3D dice model.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-transform-game-tokens-in-gameboard-tsx-from-2d-representations-to-3d-token-models-with-soft-shadows-and-bounce-animations-tokens-should-have-depth-reflective-surfaces-and-subtle-bounce-effects-when-landing-on-new-positions-apply-smooth-movement-animations-along-the-board-path",
+      "title": "Transform game tokens in GameBoard.tsx from 2D representations to 3D token models with soft shadows and bounce animations. Tokens should have depth, reflective surfaces, and subtle bounce effects when landing on new positions. Apply smooth movement animations along the board path.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-smooth-camera-panning-and-zooming-animations-in-gameboard-tsx-the-camera-should-dynamically-adjust-to-focus-on-active-game-areas-following-dice-rolls-and-token-movements-add-subtle-camera-transitions-that-enhance-the-viewing-experience-without-being-disorienting",
+      "title": "Implement smooth camera panning and zooming animations in GameBoard.tsx. The camera should dynamically adjust to focus on active game areas, following dice rolls and token movements. Add subtle camera transitions that enhance the viewing experience without being disorienting.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-gameboard-tsx-with-responsive-touch-and-mouse-controls-implement-intuitive-interactions-for-rolling-dice-tap-click-and-selecting-tokens-tap-click-to-select-tap-click-destination-to-move-ensure-controls-work-seamlessly-on-both-desktop-mouse-and-mobile-touch-devices",
+      "title": "Enhance GameBoard.tsx with responsive touch and mouse controls. Implement intuitive interactions for rolling dice (tap/click) and selecting tokens (tap/click to select, tap/click destination to move). Ensure controls work seamlessly on both desktop (mouse) and mobile (touch) devices.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-three-js-with-react-three-fiber-into-the-frontend-to-enable-3d-rendering-capabilities-for-the-ludo-board-dice-and-tokens-configure-the-3d-scene-with-appropriate-lighting-ambient-directional-point-lights-to-create-depth-and-atmosphere-set-up-the-rendering-pipeline-to-support-the-casino-style-aesthetic-with-glow-effects-and-reflections",
+      "title": "Integrate Three.js with React Three Fiber into the frontend to enable 3D rendering capabilities for the Ludo board, dice, and tokens. Configure the 3D scene with appropriate lighting (ambient, directional, point lights) to create depth and atmosphere. Set up the rendering pipeline to support the casino-style aesthetic with glow effects and reflections.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-gamelobby-tsx-to-display-a-mode-selector-with-three-options-classic-mode-quick-mode-and-master-mode-each-mode-card-should-show-its-key-characteristics-player-count-special-rules-time-limits-allow-users-to-select-their-preferred-mode-before-creating-a-new-game",
+      "title": "Update GameLobby.tsx to display a mode selector with three options: Classic Mode, Quick Mode, and Master Mode. Each mode card should show its key characteristics (player count, special rules, time limits). Allow users to select their preferred mode before creating a new game.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-gameboard-tsx-to-render-mode-specific-board-layouts-and-rules-classic-mode-uses-the-standard-3d-board-with-full-paths-quick-mode-renders-a-shortened-board-with-30-40-fewer-tiles-and-displays-a-visible-turn-timer-master-mode-shows-dice-choice-ui-with-2-3-selectable-dice-options-before-each-roll",
+      "title": "Update GameBoard.tsx to render mode-specific board layouts and rules. Classic Mode uses the standard 3D board with full paths. Quick Mode renders a shortened board with 30-40% fewer tiles and displays a visible turn timer. Master Mode shows dice choice UI with 2-3 selectable dice options before each roll.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-ranked-and-unranked-game-variants-for-classic-mode-and-quick-mode-in-both-backend-main-mo-and-frontend-gamelobby-tsx-allow-users-to-toggle-between-ranked-affects-player-statistics-and-leaderboards-and-unranked-practice-mode-with-no-stat-tracking-when-creating-games",
+      "title": "Add ranked and unranked game variants for Classic Mode and Quick Mode in both backend (main.mo) and frontend (GameLobby.tsx). Allow users to toggle between ranked (affects player statistics and leaderboards) and unranked (practice mode with no stat tracking) when creating games.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-optimize-quick-mode-ui-and-controls-in-gameboard-tsx-for-mobile-devices-ensure-touch-interactions-are-responsive-dice-rolls-are-instant-and-the-turn-timer-is-prominently-displayed-test-on-mobile-viewports-to-ensure-the-shortened-board-and-faster-gameplay-work-smoothly-on-smaller-screens",
+      "title": "Optimize Quick Mode UI and controls in GameBoard.tsx for mobile devices. Ensure touch interactions are responsive, dice rolls are instant, and the turn timer is prominently displayed. Test on mobile viewports to ensure the shortened board and faster gameplay work smoothly on smaller screens.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add free demo/practice mode for LudoVerse",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Create AI agent that can play Ludo on behalf of co-founder",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Enable AI agent to play in both live and demo game modes",
+      "reqIds": [
+        "AR-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add backend game mode enumeration to distinguish between live and demo games. Store game mode in game sessions and enforce appropriate betting rules based on mode.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Fix any backend logic preventing demo games from being created, joined, or completed. Ensure the GameMode enumeration correctly distinguishes demo games from live games and applies appropriate validation rules.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Investigate and resolve the deployment error preventing the canister from deploying successfully. Check for Motoko compilation errors, type mismatches, missing actor methods, canister upgrade issues, or network connectivity problems. Ensure the backend compiles without errors and deploys cleanly.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Fix the demo game mode functionality so players can start and complete free practice Ludo games using virtual currency without betting real ICP coins. Ensure the GameMode.Demo enumeration correctly identifies demo games and bypasses all ICP wallet balance checks and betting logic.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Fix Ludo game pieces not moving when dice is rolled - ensure piece movement animations and logic work correctly",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Improve Ludo game interface clarity and visibility - make UI elements more distinguishable and easier to understand",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Redesign Ludo board with conventional Ludo colors (red, green, yellow, blue) in an attractive futuristic advanced technology style",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Implement conventional dice rolling animation and sound effects similar to traditional Ludo games",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Study and implement Yalla Ludo's different Ludo styles and gameplay variations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Phase 1: Core Premium Game - Build polished 3D Ludo board with depth, glow, casino-style colors (gold, neon, gradients), and smooth camera pans/zooms",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Phase 1: Implement 3D dice with realistic physics-based rolling animation, replacing current 2D dice",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Phase 1: Create 3D game tokens with soft shadows, bounce animations, and smooth movement along board paths",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Phase 1: Implement responsive touch and mouse controls for dice rolling and token selection",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Phase 1: Integrate Unity WebGL or Unity Mobile with URP lighting and DOTween for premium animations",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Phase 2: Implement Classic Mode - traditional Ludo rules, 2-4 players, no power-ups, ranked and unranked options",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Phase 2: Implement Quick Mode - shortened paths, faster dice, time-limited turns, 2-4 players, no power-ups, ranked and unranked, optimized for mobile",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Phase 2: Implement Master Mode - skill-heavy rules with dice choice options, advanced gameplay mechanics",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Extend the backend GameMode enumeration in main.mo to include Classic, Quick, and Master mode variants. Each mode should be a distinct enum value that can be stored in GameSession records.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Implement Classic Mode backend rules in main.mo: traditional Ludo rules with support for 2-4 players, no power-ups, and separate ranked/unranked tracking. Store match results with mode-specific statistics.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Implement Quick Mode backend rules in main.mo: shortened board paths (reduce path length by 30-40%), faster dice mechanics (allow extra rolls on 6s with shorter cooldown), and time-limited turns (30-45 second turn timer). Support 2-4 players with no power-ups and ranked/unranked variants.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Implement Master Mode backend rules in main.mo: skill-heavy gameplay with dice choice options. Allow players to choose between multiple dice values or dice roll modifiers on their turn. Include advanced move validation and strategic gameplay mechanics.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "3d",
+  "projectName": "LudoVerse",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

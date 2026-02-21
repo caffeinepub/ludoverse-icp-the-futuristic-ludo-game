@@ -1,0 +1,85 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Implement modular game modes: Classic, Quick, and Master",
+  "requirements": [
+    {
+      "id": "REQ-40",
+      "summary": "Add mode selector to GameLobby with Classic, Quick, and Master Mode options",
+      "acceptanceCriteria": [
+        "Mode selector displays three distinct mode options with descriptions",
+        "Classic Mode shows: Traditional rules, 2-4 players, ranked/unranked",
+        "Quick Mode shows: Shortened paths, faster dice, time limits, mobile-optimized",
+        "Master Mode shows: Skill-heavy, dice choice options",
+        "Selected mode is highlighted visually",
+        "Selected mode is passed to game creation flow"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GameLobby.tsx",
+          "operation": "modify",
+          "description": "Add a mode selector UI component that displays three mode cards (Classic, Quick, Master) with their key characteristics. Each card should show player count, special rules, and time limits where applicable. Implement state management for the selected mode using React state. Ensure the selected mode is visually highlighted and passed to the createGame backend method when creating a new game. Use the GameMode enum values 'classic', 'quick', and 'master' from the backend interface. Integrate the mode selector above the existing game type (live/demo) selection, ensuring it works with both ranked and unranked variants. Reference the generated asset at frontend/public/assets/generated/game-modes-cards.dim_600x400.png for visual styling inspiration."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Update GameBoard to render mode-specific layouts, Quick Mode timer, and Master Mode dice choice UI",
+      "acceptanceCriteria": [
+        "GameBoard adapts board path length based on selected mode",
+        "Quick Mode displays a countdown timer for each turn",
+        "Master Mode shows dice choice UI with clickable dice options",
+        "Mode-specific rules are clearly indicated in the UI",
+        "Turn timer auto-advances turn when time expires in Quick Mode"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GameBoard.tsx",
+          "operation": "modify",
+          "description": "Extend GameBoard to accept a gameMode prop (classic, quick, or master) from the parent component. For Classic Mode, use the existing full 3D board path layout. For Quick Mode, render a shortened board with 30-40% fewer tiles using conditional logic in the board tile generation, and add a visible countdown timer component that displays 30-45 seconds per turn with auto-advance functionality when time expires. For Master Mode, add a dice choice UI overlay that presents 2-3 clickable dice options before each roll, allowing the player to select their preferred dice value. Use conditional rendering based on gameMode to show/hide mode-specific UI elements. Ensure the timer and dice choice UI are prominently visible and styled consistently with the existing neon theme. Reference the generated dice assets at frontend/public/assets/generated/dice-faces.dim_600x100.png and frontend/public/assets/generated/futuristic-dice.dim_300x300.png for UI elements."
+        }
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "summary": "Add ranked/unranked toggle for Classic and Quick modes in GameLobby",
+      "acceptanceCriteria": [
+        "GameLobby includes ranked/unranked toggle for Classic and Quick modes",
+        "Ranked games update player win/loss statistics and leaderboard rankings",
+        "Unranked games do not affect player statistics or rankings",
+        "Game session records store ranked/unranked status",
+        "UI clearly indicates whether a game is ranked or unranked"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GameLobby.tsx",
+          "operation": "modify",
+          "description": "Add a ranked/unranked toggle component (using a Shadcn UI switch or toggle button) that appears when Classic or Quick mode is selected. Use React state to track the rankedStatus and pass the RankedStatus enum value ('ranked' or 'unranked') to the createGame backend method. Hide the toggle for Master Mode as it is not mentioned in the BuildRequest for that mode. Display a clear label or icon indicating whether the current game configuration is ranked (affects stats/leaderboards) or unranked (practice mode). Ensure the toggle state is reset appropriately when switching between modes. Style the toggle consistently with the existing dark casino theme."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Optimize Quick Mode UI for mobile devices with responsive touch controls",
+      "acceptanceCriteria": [
+        "Quick Mode UI is fully responsive on mobile viewports (320px-768px)",
+        "Touch targets for dice and tokens are appropriately sized (min 44x44px)",
+        "Turn timer is clearly visible on mobile screens",
+        "Dice rolling and piece movement animations are optimized for mobile performance",
+        "No UI elements overlap or become unusable on small screens"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/GameBoard.tsx",
+          "operation": "modify",
+          "description": "Add responsive CSS classes and Tailwind utilities to ensure Quick Mode UI elements (turn timer, dice roll button, game pieces) are mobile-optimized. Implement touch-friendly sizing for interactive elements (minimum 44x44px touch targets). Use responsive breakpoints (sm:, md:) to adjust layout on smaller viewports (320px-768px). Position the turn timer prominently at the top or bottom of the screen on mobile with adequate contrast and size. Optimize Three.js canvas rendering settings for mobile performance (reduce particle effects, simplify shadows). Test touch event handling for dice rolling and piece selection to ensure responsiveness. Ensure the shortened Quick Mode board fits well on mobile screens without requiring excessive zoom or scroll."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add mobile-specific CSS custom properties and utilities for Quick Mode elements. Define responsive font sizes, spacing, and animation durations optimized for mobile performance. Add media queries for small viewports (max-width: 768px) to adjust timer positioning, dice button sizing, and game piece scaling. Ensure animations are performant on mobile devices by using transform and opacity properties only. Add touch-action CSS rules to prevent unintended zoom or scroll behavior during gameplay."
+        }
+      ]
+    }
+  ]
+}
